@@ -1,17 +1,23 @@
-use actix_files as fs;
-use actix_web::{web, App, HttpServer, HttpResponse};
+use actix_files::NamedFile;
+use actix_web::{web, App, HttpServer, Result};
 
-fn index(cfg: &mut web::ServiceConfig) {
+fn css(cfg: &mut web::ServiceConfig) {
     cfg.service(
-	fs::Files::new("/", "./templates").index_file("index.html")
+	    actix_files::Files::new("/css", "./css").show_files_listing()
     );
+}
+
+async fn index1() -> Result<NamedFile> {
+    let path = "./templates/index.html";
+    Ok(NamedFile::open(path)?)
 }
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
-	    .configure(index)
+	    .configure(css)
+        .route("/", web::get().to(index1))
     })
     .bind("127.0.0.1:8088")?
     .run()

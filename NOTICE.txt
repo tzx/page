@@ -1,0 +1,5 @@
+This product includes software, specifically CSS files with no modifications developed at
+https://github.com/Xe/site. 
+
+License and copyright notice for source is included in the comments of the source files.
+

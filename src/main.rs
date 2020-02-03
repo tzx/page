@@ -7,6 +7,12 @@ fn css(cfg: &mut web::ServiceConfig) {
     );
 }
 
+fn static_files(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        actix_files::Files::new("/static", "./static").show_files_listing()
+    );
+}
+
 async fn index1() -> Result<NamedFile> {
     let path = "./templates/index.html";
     Ok(NamedFile::open(path)?)
@@ -17,6 +23,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
 	    .configure(css)
+        .configure(static_files)
         .route("/", web::get().to(index1))
     })
     .bind("127.0.0.1:8088")?

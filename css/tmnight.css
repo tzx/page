@@ -1,0 +1,43 @@
+.tm-night {
+	background-color: #1d1f21;
+	color: #c5c8c6;
+}
+
+.tm-night h1,
+.tm-night h2,
+.tm-night h3,
+.tm-night h4,
+.tm-night h5,
+.tm-night h6 {
+	color: #b5bd68;
+}
+
+.tm-night h1 a,
+.tm-night h2 a,
+.tm-night h3 a,
+.tm-night h4 a,
+.tm-night h5 a,
+.tm-night h6 a {
+	color: #f0c674;
+	border-bottom-color: #f0c674;
+}
+
+.tm-night h1 a:hover,
+.tm-night h2 a:hover,
+.tm-night h3 a:hover,
+.tm-night h4 a:hover,
+.tm-night h5 a:hover,
+.tm-night h6 a:hover {
+	background-color: #f0c674;
+	color: #c5c8c6;
+}
+
+.tm-night a {
+    color: #b294bb;
+    border-bottom: 1px solid #b294bb;
+}
+
+.tm-night a:visited {
+    color: #969896;
+    border-color: #969896;
+}

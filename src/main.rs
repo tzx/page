@@ -18,6 +18,11 @@ async fn index1() -> Result<NamedFile> {
     Ok(NamedFile::open(path)?)
 }
 
+async fn contact() -> Result<NamedFile> {
+    let path = "./templates/contact.html";
+    Ok(NamedFile::open(path)?)
+}
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
@@ -25,6 +30,7 @@ async fn main() -> std::io::Result<()> {
 	    .configure(css)
         .configure(static_files)
         .route("/", web::get().to(index1))
+        .route("/contact", web::get().to(contact))
     })
     .bind("127.0.0.1:8088")?
     .run()

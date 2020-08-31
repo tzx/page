@@ -1,32 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-      <link rel="stylesheet" href="/css/tmnight.css">
-      <link rel="stylesheet" href="/css/hack.css">
-      <title>Timmy Xiao</title>
-      <meta charset="UTF-8">
-  </head>
+<!doctype html>
 
-  <body class="hack tm-night">
-      <div class="container">
-          <header>
-              <p><a href="/">Timmy Xiao</a> | <a href="https://matrix.timmy.moe">Matrix</a></p>
-          </header>
-          <div class="grid">
-            <div class="cell -3of12 content">
-                <img src="/static/img/cinn.png" width=200 height=200>
-            </div>
-            <div class="cell -9of12 content">
-                <h1>Timmy Xiao</h1>
-                <h3>I go to school</h3>
-                <ul>
-                    <li>
-                        :(
-                    </li>
-                </ul>
-            </div>
-          </div>
-          <footer></footer>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/size_and_colors.css">
+</head>
+
+<body class="tm-night">
+  <div class="content">
+    <nav class="header">
+      <a href="/">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <div class="columns">
+      <div class="column-25">
+        <img src="/static/img/cssart.png">
       </div>
-  </body>
+      <div class="column-75">
+        <h2>Timmy Xiao</h2>
+        <p>Welcome to my page. I am currently a student at MIT studying Computer Science and Engineering (6-3).</p>
+        <p>I guess I want this to have a blog, as I have some stuff written down, but I want to rewrite this site to have some form of static site generation from templates, so I don't have to copy and paste so many things. Currently this is just a actix-web server serving files.</p>
+      </div>
+    </div>
+    <footer>
+      <p>© 2020 Timmy Xiao</p>
+      <p>Code under MIT. Other stuff under CC-BY-4.0.</p>
+    </footer>
+  </div>
+</body>
+
 </html>

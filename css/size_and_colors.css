@@ -1,0 +1,23 @@
+html {
+  font-size: 14px;
+}
+
+.tm-night {
+  font-family: monospace;
+  background-color: #1d1f21;
+  color: #c5c8c6;
+}
+
+.tm-night h1,
+.tm-night h2,
+.tm-night h3 {
+  color: #b5bd68;
+}
+
+.tm-night a:link {
+  color: #81a2be;
+}
+
+.tm-night a:visited {
+  color: #b294bb;
+}

@@ -7,7 +7,7 @@ I was inspired to actually put stuff online from someone's similar post about
 static and dynamic dispatch in Rust with detailed binary inspection. I wish I
 can find it again so I can give credit :(. 
 
-## What is Polymorphism?
+### What is Polymorphism?
 
 Polymorphism allows us to provide a group of functions for multiple concrete
 types, allowing shared behavior. In most languages, we can use interfaces to
@@ -34,7 +34,7 @@ impl Animal for Dog {
 }
 ```
 
-## Using Trait Bounds
+### Using Trait Bounds
 
 In Rust, we can use trait bounds to make a generic function be any type that
 has the behavior we specified. This allows us to have a function that takes any
@@ -52,7 +52,7 @@ fn main() {
 }
 ```
 
-## Using Trait Objects
+### Using Trait Objects
 
 However, this would not work if we want to take in a vector of different types
 that implement the same trait. A `Vec<impl Animal>` only allows only one type
@@ -82,7 +82,7 @@ fn main() {
 If you wanted the trait objects to be owned rather than being references, you
 can use `Box`.
 
-## But Wait! Consider Enums First
+### But Wait! Consider Enums First
 
 In Rust, enums are allowed to have data along with them, meaning we can create
 a `Animal` enum to hold our `Dog` and `Cat` structs (although we didn't hold

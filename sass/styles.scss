@@ -1,0 +1,102 @@
+$font-family-sans-seriff: "Manrope", sans-serif;
+$background-color: #fcfcfc;
+$foreground-color: #444;
+$link-color: #3878BB;
+
+html {
+  background-color: $background-color;
+  color: $foreground-color;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("ManropeVF.tff") format("truetype-variations");
+  font-style: normal;
+  font-weight: 200 800;
+}
+
+body {
+  font-family: $font-family-sans-seriff;
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+h1,h2 {
+  font-weight: 300;
+  font-size: 4em;
+}
+h3 {
+  font-weight: 400;
+  font-size: 1.625em;
+}
+
+div#container {
+  max-width: 800px;
+  margin: 1em auto;
+  padding: 1em 1.5em;
+}
+
+.inner h3 {
+  margin: 1em 0 0.5em 0;
+  font-weight: bold;
+}
+
+// I hate the font has some left kerning
+.title {
+  margin: 0.25em 0 0.1em -0.08em;
+}
+
+.page-heading {
+  margin-bottom: 1.2em;
+  padding-bottom: 0.2em;
+}
+
+header {
+  overflow: auto;
+  font-size: 1.333em;
+}
+
+#header-left {
+  float: left;
+  margin: 0;
+}
+
+#header-right {
+  float: right;
+  margin: 0 0.5em 0 0;
+}
+
+a {
+  display: inline-block;
+  color: $link-color;
+  text-decoration: none;
+}
+
+a:after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0.125em;
+  background: $link-color;
+  transition: width .2s;
+}
+
+a:hover:after {
+  width: 100%;
+  transition: width .2s;
+}
+
+.blog-listings ul {
+  list-style: none;
+  padding: 0;
+
+}
+
+.blog-listings ul > li::before {
+  content: '— ';
+  color: #c00;
+}
+
+.blog-listings ul > li > time {
+  color: #c00;
+}

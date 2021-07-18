@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-  {{ page.title }}
-</h1>
-<p class="subtitle"><strong>{{ page.date }}</strong></p>
+<div class="page-heading">
+  <h1 class="title">
+    {{ page.title }}
+  </h1>
+  <div class="subtitle"><strong>{{ page.date }}</strong></div>
+</div>
 {{ page.content | safe }}
 {% endblock content %}

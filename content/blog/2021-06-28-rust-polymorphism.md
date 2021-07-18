@@ -86,11 +86,11 @@ can use `Box`.
 
 In Rust, enums are allowed to have data along with them, meaning we can create
 a `Animal` enum to hold our `Dog` and `Cat` structs (although we didn't hold
-data in our Traits example. We also can hold a `Vec<Animal>` without needing to
-use dynamic dispatch. I believe how it works under the hood is something that
-is similar to tagged unions which only needs compile time checks. To achieve
-polymorphism, we can implement a function on the enum with a `match` expression
-to have a single place for our shared behavior.
+data for our structs in our Traits example). We also can hold a `Vec<Animal>`
+without needing to use dynamic dispatch. I believe how it works under the hood
+is something that is similar to tagged unions which only needs compile time
+checks. To achieve polymorphism, we can implement a function on the enum with a
+`match` expression to have a single place for our shared behavior.
 
 ```rust
 enum Animal {

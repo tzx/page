@@ -86,11 +86,15 @@ a:hover:after {
   transition: width .2s;
 }
 
-.blog-listings ul {
-  list-style: none;
+ul {
   padding: 0;
-
+  list-style: none;
 }
+
+ul > li::before {
+  content: '-> ';
+}
+
 
 .blog-listings ul > li::before {
   content: '— ';
@@ -99,4 +103,21 @@ a:hover:after {
 
 .blog-listings ul > li > time {
   color: #c00;
+}
+
+.top {
+  margin-top: 2em;
+}
+
+// paperc
+:not(pre) > code {
+  background-color: #eee;
+  color: #444;
+  border-radius: 0.25em;
+  padding: 0.05em 0.2em;
+  margin: 0 0.05em;
+}
+
+pre {
+  border-radius: 0.25em;
 }

@@ -22,7 +22,7 @@ const target = std.zig.CrossTarget{
 
 I changed `main.zig` to only include `pub fn main() !void {}`. The starter code relies on using the Zig's standard library, but we cannot use it because we don't even have an operating system. We are making the operating system! When we try to compile and run `zig build`, we get these warnings:
 
-```
+```bash
 $ zig build
 LLD Link... warning(link): unexpected LLD stderr:
 ld.lld: warning: cannot find entry symbol _start; not setting start address

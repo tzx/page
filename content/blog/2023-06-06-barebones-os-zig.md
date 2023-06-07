@@ -196,6 +196,22 @@ export fn kmain() noreturn {
 }
 ```
 
+### Sidenote: Nix Cross Compiling
+
+I am using Nix and its dev shell when developing. I was wondering how to make a dev shell for cross-compiled programs since my build platform is on `x86_64-pc-linux-gnu` and my host platform is on `riscv-unknown-none-elf`. I need `gcc` and `gdb` that run on `x86` but read `riscv` binaries. The solution is actually pretty easy; you need to use the `pkgsCross` attribute, so my flake looks like this:
+
+```nix
+devShells.default = pkgs.pkgsCross.riscv64-embedded.mkShell {
+  nativeBuildInputs = with pkgs; [
+    zig
+    zls
+    qemu
+    gdb
+    gcc
+  ];
+};
+```
+
 ### Summary
 
 - QEMU command: `qemu-system-riscv64 -machine virt -bios none -kernel ./zig-out/bin/nosering -nographic -serial mon:stdio`

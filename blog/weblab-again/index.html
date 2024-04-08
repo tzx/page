@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="https://timmy.moe/styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <p id="header-left">Timmy Xiao</p>
+      <div id="header-right">
+        <a href="/">home</a>
+        ·
+        <a href="/blog">blog</a>
+      </div>
+    </header>
+    <section class="section">
+      <div class="inner">
+        
+<div class="page-heading">
+  <h1 class="title">
+    Doing Weblab Again
+  </h1>
+  <div class="subtitle"><strong>2022-01-30</strong></div>
+</div>
+<p>This month, I participated in <a href="https://weblab.mit.edu">weblab</a> with a couple of
+my friends to make <a href="https://enutyping.timmy.moe">enuTyping</a>. This was my second
+time doing weblab; I did weblab during the start of 2019, but to be honest, I
+didn't really learn much other than writing React (it was class-based back
+then). I have much more experience with web development now, so I am here to
+write down things that I witnessed when participating again.</p>
+<h3 id="configuring-react-from-scratch">Configuring React from scratch</h3>
+<p>All React code that I have written before didn't start from scratch. Projects
+were already configured or configured with
+<a href="https://create-react-app.dev/">create-react-app</a>, so I didn't have to worry
+about setup. The weblab staff provides a skeleton that almost everyone starts
+from, but our team decided to start from scratch. I finally learned <code>babel</code> and
+<code>webpack</code> in depth. A lot of the details about building and deploying React
+apps started making sense. One good thing that came from doing this was
+integrating Typescript, something that the weblab staff taught this year but
+never integrated to the project skeleton, to our project. Setting stuff from
+scratch was pretty painful and tedious (our team spend quite a bit on asset
+management), so I can see why skeletons and tools that help you get started exist.</p>
+<h3 id="thinking-functionally">Thinking functionally</h3>
+<p>I decided to dabble in learning Haskell last year, and it has made me think
+about writing programs differently, but I almost never apply it. However,
+writing React again changed my perspective, and it has made me understand some
+of React's design choices. Functions are pure (the same props makes the same
+JSX) and we avoid mutating data (we set it and optionally use previous values).
+It seems useful to apply functional programming in an asynchronous environment.
+I am not saying you should learn about functional programming right now. In
+fact, writing React probably makes you understand functional programming better
+if you are ever exposed to it; I just didn't spend time to understand React
+when I first touched it.</p>
+<h3 id="reproducible-environments">Reproducible environments</h3>
+<p>&quot;Works on my machine.&quot; Starting a project from scratch and working with other
+people makes me appreciate tools that allow reproducible environments. It was
+not a huge mess for such a small project and team, but it was still quite
+agonizing to deal with. Also having different versions of the same software and
+having a shell environment with the exact dependencies you desire makes me want
+to try Nix again.</p>
+
+
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>

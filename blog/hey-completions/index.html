@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="https://timmy.moe/styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <p id="header-left">Timmy Xiao</p>
+      <div id="header-right">
+        <a href="/">home</a>
+        ·
+        <a href="/blog">blog</a>
+      </div>
+    </header>
+    <section class="section">
+      <div class="inner">
+        
+<div class="page-heading">
+  <h1 class="title">
+    Shell completions from nix and brew
+  </h1>
+  <div class="subtitle"><strong>2024-02-16</strong></div>
+</div>
+<p>One thing that I noticed when I installed packages from <code>nix</code> and <code>homebrew</code>
+was the fact that I was missing <code>zsh</code> completions! I was looking at
+<code>nix-daemon.sh</code> and it does add some files installed to <code>XDG_DATA_DIRS</code> but it
+doesn't do anything to your shells regarding completions. Same with <code>homebrew</code>.</p>
+<p>To resolve, add this before your <code>compinit</code> in your <code>.zshrc</code>:</p>
+<pre data-lang="bash" style="background-color:#fafafa;color:#383a42;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e45649;">fpath</span><span style="color:#a626a4;">=</span><span>(</span><span style="color:#e45649;">~</span><span>/nix-profile/share/zsh/site-functions $</span><span style="color:#e45649;">fpath</span><span>)
+</span><span style="color:#a626a4;">if </span><span style="color:#0184bc;">type </span><span style="color:#a626a4;">&gt;&gt;</span><span> /dev/null</span><span style="color:#a626a4;">; then
+</span><span>    </span><span style="color:#e45649;">HOMEBREW_PREFIX</span><span style="color:#a626a4;">=</span><span style="color:#50a14f;">$(</span><span style="color:#e45649;">brew --prefix</span><span style="color:#50a14f;">)
+</span><span>    </span><span style="color:#e45649;">fpath</span><span style="color:#a626a4;">=</span><span>($</span><span style="color:#e45649;">HOMEBREW_PREFIX</span><span>/share/zsh/site-functions $</span><span style="color:#e45649;">fpath</span><span>)
+</span><span style="color:#a626a4;">fi
+</span></code></pre>
+<h3 id="man">Man</h3>
+<p>I was curious why my <code>man</code> pages worked even though they don't seem to be set
+in <code>MANPATH</code>.</p>
+<p>I realized that <code>manpath</code> also searches for man pages by looking in your <code>PATH</code>
+and sees if a pathname ends in <code>/bin</code> and looks for <code>/share/man</code> or <code>/man</code> in
+the same pathname. In Linux (it also uses <code>manpath</code>), there is also
+<code>man_db.conf</code> which does something similar with <code>MANPATH_MAP /bin /usr/share/man</code>, so it doesn't have to look at <code>PATH</code>.</p>
+
+
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>

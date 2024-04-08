@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="https://timmy.moe/styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <p id="header-left">Timmy Xiao</p>
+      <div id="header-right">
+        <a href="/">home</a>
+        ·
+        <a href="/blog">blog</a>
+      </div>
+    </header>
+    <section class="section">
+      <div class="inner">
+        
+<div class="page-heading">
+  <h1 class="title">
+    Neovim 0.5 Setup
+  </h1>
+  <div class="subtitle"><strong>2021-07-03</strong></div>
+</div>
+<p>Neovim 0.5 is finally here! I am going to document some of my old notes that I
+took when I used nightly as well as some new stuff.</p>
+<h3 id="init-lua">init.lua</h3>
+<p>You can use <code>init.lua</code> instead of <code>init.vim</code> to have your configuration file be
+written in lua! To be honest, I don't think there is a good reason to do this
+other than fighting boredom. I don't even think you can learn lua doing it.
+Here are some things that I learned from doing it.  Replacing <code>let</code> is just
+using <code>vim.g</code>. Keymaps can be defined with <code>vim.api.nvim_set_keymap()</code>. Things
+you do with <code>set</code> you can do with <code>vim.o</code>.  However, when I was setting my
+undodir using <code>vim.o.undodir</code>, I had to use <code>vim.fn.expand</code> because it took the
+<code>~/.vimundo</code> string literally which created a ~ folder for each of my working
+directories. Therefore I had to use <code>vim.o.undodir = vim.fn.expand '~/.vimundo'</code>. There are probably other caveats as well. This is most
+definitely a bad introduction but there is now good documentation if you use
+<code>:h lua-vimscript</code>. The <code>vim.api</code> functions can be found under <code>:h api.txt</code>. </p>
+<h3 id="plugins">Plugins</h3>
+<p>Since the introduction of lua, there has been a lot of new plugins. I now use
+<a href="https://github.com/wbthomason/packer.nvim">packer.nvim</a> as my package
+manager as it supports lazy loading to improve startup time and you can
+configure your packages declaratively. A cool plugin that I discovered was
+<a href="https://github.com/nvim-telescope/telescope.nvim">telescope.nvim</a>, but it
+was pretty slow for grepping files; I found
+<a href="https://github.com/camspiers/snap">snap</a> but I haven't tried it. I also have
+been meaning to try out <a href="https://github.com/TimUntersberger/neogit">neogit</a>.</p>
+<p>Update on 2021-07-18: It looks like telescope is getting
+<a href="https://github.com/nvim-telescope/telescope.nvim/pull/987">faster</a>. There's 
+also this cool <a href="https://github.com/rockerBOO/awesome-neovim">list of plugins</a>
+that I found.</p>
+<h3 id="lsp">LSP</h3>
+<p>With 0.5, neovim now has a builtin LSP client. Advantages over other LSP
+clients are customability and speed. If you are happy with your current setup,
+you don't really need to switch. When I was running nightly, I had to do a lot
+of special configuration, but I now think the builtin LSP is super easy to
+setup. Checkout <a href="https://github.com/neovim/nvim-lspconfig">nvim-lspconfig</a>
+and its wiki and you should be good to go.  Basically you need to install the
+language servers yourself (or use a plugin), and you need to setup completion
+(I used to use <a href="https://github.com/nvim-lua/completion-nvim">completion.nvim</a>
+but I found <a href="https://github.com/hrsh7th/nvim-compe">nvim-compe</a> better). Some
+completions need snippet support, so you need to install a plugin that supports
+it (I use <a href="https://github.com/hrsh7th/vim-vsnip">vim-vsnip</a> but might switch
+to lua-based one) and you also need tell the lsp server that you can use
+snippets by overriding the default client capabilities.</p>
+<h3 id="treesitter">Treesitter</h3>
+<p>We also get introduced to the beta of treesitter support in neovim. It
+basically allows you to leverage an incremental parsing library. You can use it
+to manipulate your file based on the syntax trees parsed. You can also have
+better highlighting, indentation, and folding support. I currently only use
+treesitter for the better syntax highlighting, so I haven't really tried
+treesitter out. You do need to install a
+<a href="https://github.com/nvim-treesitter/nvim-treesitter">plugin</a> however.</p>
+
+
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>

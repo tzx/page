@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="https://timmy.moe/styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <p id="header-left">Timmy Xiao</p>
+      <div id="header-right">
+        <a href="/">home</a>
+        ·
+        <a href="/blog">blog</a>
+      </div>
+    </header>
+    <section class="section">
+      <div class="inner">
+        
+<div class="page-heading">
+  <h1 class="title">
+    Barebones RISC-V OS written in Zig
+  </h1>
+  <div class="subtitle"><strong>2023-06-06</strong></div>
+</div>
+<p>I am calling my OS <code>nosering</code>. The reason why is stupid and I am not going to explain. IYKYK. Here are my messy notes I written to bootstrap my OS.</p>
+<h3 id="a-different-target">A Different Target</h3>
+<p>I used <code>zig init-exe</code> which allows building a compiled executable that will only run on my machine's native OS since the default compiled target would be for my machine (<code>aarch64-linux</code>). However, I want to compile my executable for the RISC-V architecture and have it run without an underlying operating system. To achieve this, I need to set the compilation target to <code>riscv64-freestanding</code> for my &quot;freestanding&quot; executable. Instead of running <code>zig build-exe</code> with the <code>-target riscv64-freestanding</code> flag to cross-compile, I decided to modify <code>build.zig</code> myself to gain a better understanding of Zig's build system and have a working binary with just <code>zig build</code>. The change to <code>build.zig</code> was simple:</p>
+<pre data-lang="zig" style="background-color:#fafafa;color:#383a42;" class="language-zig "><code class="language-zig" data-lang="zig"><span style="color:#a0a1a7;">// OLD CODE:
+</span><span style="color:#a0a1a7;">// const target = b.standardTargetOptions(.{});
+</span><span style="color:#a0a1a7;">// NEW CODE:
+</span><span style="color:#a626a4;">const</span><span> target </span><span style="color:#a626a4;">= std.zig.CrossTarget</span><span>{
+</span><span>    .cpu_arch </span><span style="color:#a626a4;">=</span><span> std.Target.Cpu.Arch.x86,
+</span><span>    .os_tag </span><span style="color:#a626a4;">=</span><span> std.Target.Os.Tag.freestanding,
+</span><span>};
+</span></code></pre>
+<h3 id="linker-script">Linker Script</h3>
+<p>I changed <code>main.zig</code> to only include <code>pub fn main() !void {}</code>. The starter code relies on using the Zig's standard library, but we cannot use it because we don't even have an operating system. We are making the operating system! When we try to compile and run <code>zig build</code>, we get these warnings:</p>
+<pre data-lang="bash" style="background-color:#fafafa;color:#383a42;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#e45649;">$</span><span> zig build
+</span><span style="color:#e45649;">LLD</span><span> Link... warning(link)</span><span style="color:#0184bc;">:</span><span> unexpected LLD stderr:
+</span><span style="color:#e45649;">ld.lld:</span><span> warning: cannot find entry symbol _start</span><span style="color:#a626a4;">; </span><span style="color:#e45649;">not</span><span> setting start address
+</span></code></pre>
+<p>We seemed to encounter a linking error, and that makes sense. Most of the time when we write programs, we compile them to run on our own machine, meaning it outputs binaries in a format that our operating system expects. The compiler automatically links our code to run on its host machine and the host machine's operating system would handle most of memory management. However, we don't have an OS to do that since we are writing the OS ourself. We need to write a custom linker script so we can define the memory layout of our binary, so we can load it into our hardware. Since we have no OS, we need to define our own entry point since we do not have a C runtime. By default the entry point is called <code>_start</code> but I changed it to <code>_enter</code>. We would then have the function <code>export fn _enter() callconv(.Naked) noreturn</code> in zig.</p>
+<pre style="background-color:#fafafa;color:#383a42;"><code><span>OUTPUT_ARCH(&quot;riscv&quot;)
+</span><span>
+</span><span>/* Use _enter as our entry point to our program */
+</span><span>ENTRY(_enter)
+</span><span>
+</span><span>MEMORY
+</span><span>{
+</span><span>  /* Source of ORIGIN: https://github.com/qemu/qemu/blob/master/hw/riscv/virt.c#L97
+</span><span>   * Source of LENGTH: QEMU manual has -m default to be 128MiB
+</span><span>   */
+</span><span>  ram (rwxa): ORIGIN = 0x80000000, LENGTH = 128M
+</span><span>}
+</span><span>
+</span><span>
+</span><span>/* We are only loading from the file using PT_LOAD, we are not using dynamic linking */
+</span><span>PHDRS
+</span><span>{
+</span><span>  ram_fakerom PT_LOAD;
+</span><span>  ram_init PT_LOAD;
+</span><span>  ram PT_LOAD;
+</span><span>}
+</span><span>
+</span><span>/* We are putting everything into RAM */
+</span><span>SECTIONS
+</span><span>{
+</span><span>  .text : ALIGN(4K) {
+</span><span>    *(.text.init);
+</span><span>    *(.text);
+</span><span>  } &gt;ram :ram_fakerom
+</span><span>
+</span><span>  .rodata : ALIGN(4K) {
+</span><span>    PROVIDE( _global_pointer = . );
+</span><span>    *(.rodata);
+</span><span>  } &gt;ram :ram_fakerom
+</span><span>
+</span><span>  .data : ALIGN(4K) {
+</span><span>    *(.data);
+</span><span>  } &gt;ram :ram_init
+</span><span>
+</span><span>  .bss : ALIGN(4K) {
+</span><span>    *(.bss);
+</span><span>  } &gt;ram :ram
+</span><span>
+</span><span>  PROVIDE( _bss_start = ADDR(.bss) );
+</span><span>  PROVIDE( _bss_end = ADDR(.bss) + SIZEOF(.bss) );
+</span><span>
+</span><span>  PROVIDE( _stack_start = _bss_end );
+</span><span>  /* Stack size of 4kB */
+</span><span>  PROVIDE( _stack_end = _stack_start + 0x4000 );
+</span><span>  PROVIDE( _heap_start = _stack_end );
+</span><span>  PROVIDE( _PHYSTOP = ORIGIN(ram) + LENGTH(ram) );
+</span><span>}
+</span></code></pre>
+<p>After this I get a <code>R_RISCV_HI20 out of range</code> error when running <code>zig build</code>. I found <a href="https://github.com/ziglang/zig/issues/5558">this</a> on GitHub and added <code>exe.code_model = .medium</code> to my <code>build.zig</code>. It compiled fine after. This makes sense because we start our program at <code>0x8000_0000</code> which lies outside the 2 GiB address range using <code>lui</code>.</p>
+<p>We then add this linker script to executable in <code>build.zig</code> with <code>exe.setLinkerScriptPath(std.build.FileSource{ .path = &quot;src/LINKERSCRIPT.ld&quot; });</code>. After this, our code seems to compile without any errors.</p>
+<h3 id="running-in-qemu">Running in QEMU</h3>
+<p>I won't be running my OS on real hardware (maybe later!), so I am using QEMU <code>virt</code> machine. You can list what hardware to emulate on using <code>qemu-system-riscv64 -machine help</code>. Since RISC-V machines are very different, images running on one machine likely will not run on another. Currently, I don't really care (honestly I don't really know) about particular hardware, so I am using <code>virt</code>. I also won't be loading any firmware and will just have QEMU just load the kernel I am building directly. To run my OS, I would just run <code>qemu-system-riscv64 -machine virt -bios none -kernel ./zig-out/bin/nosering</code>.</p>
+<p>To see what's going on, we would have to run QEMU with added flags <code>-gdb tcp::1234 -S</code>, and then run <code>gdb</code> on our binary and then run the command <code>target remote :1234</code>. We should be able to debug and see that we enter the <code>_enter</code> function of our code.</p>
+<h3 id="okay-now-what">Okay, now what?</h3>
+<p>My <code>_enter</code> function is initially empty, so we are doing nothing. Secondly, we didn't set up our stack or statically allocated variables. These are usually done through assembly, so you should have the <code>_enter</code> function go to assembly to do these tasks and then go to Zig. You would add the assembly file with <code>exe.addAssemblyFile(&quot;src/ASMFILE.S&quot;);</code>. My assembly file looks like this:</p>
+<pre data-lang="asm" style="background-color:#fafafa;color:#383a42;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#0184bc;">.section .text.init
+</span><span>
+</span><span style="color:#0184bc;">.global _enter
+</span><span style="color:#0184bc;">_enter:
+</span><span style="color:#0184bc;">    # Only make the guaranteed hardware thread (hart) of id </span><span style="color:#c18401;">0 </span><span style="color:#0184bc;">do bootstrapping
+</span><span style="color:#0184bc;">    # while the rest just </span><span style="color:#a626a4;">wait </span><span style="color:#0184bc;">for interrupts
+</span><span style="color:#0184bc;">    csrr        t0</span><span>, </span><span style="color:#0184bc;">mhartid
+</span><span style="color:#0184bc;">    bnez        t0</span><span>, </span><span style="color:#0184bc;">wait_for_interrupt
+</span><span>
+</span><span style="color:#0184bc;">    # Don&#39;t do any address translation </span><span style="color:#a626a4;">or </span><span style="color:#0184bc;">protection
+</span><span style="color:#0184bc;">    csrw        satp</span><span>, </span><span style="color:#0184bc;">zero
+</span><span>
+</span><span style="color:#0184bc;"># https://www.sifive.com/blog/all</span><span>-</span><span style="color:#0184bc;">aboard</span><span>-</span><span style="color:#0184bc;">part</span><span>-</span><span style="color:#c18401;">3</span><span>-</span><span style="color:#0184bc;">linker</span><span>-</span><span style="color:#0184bc;">relaxation</span><span>-</span><span style="color:#a626a4;">in</span><span>-</span><span style="color:#0184bc;">riscv</span><span>-</span><span style="color:#0184bc;">toolchain
+</span><span style="color:#0184bc;">.option </span><span style="color:#a626a4;">push
+</span><span style="color:#0184bc;">.option norelax
+</span><span style="color:#0184bc;">    la      gp</span><span>, </span><span style="color:#0184bc;">_global_pointer
+</span><span style="color:#0184bc;">.option </span><span style="color:#a626a4;">pop
+</span><span style="color:#0184bc;">    
+</span><span style="color:#0184bc;">    # Set up the stack
+</span><span style="color:#0184bc;">    la      </span><span style="color:#e45649;">sp</span><span>, </span><span style="color:#0184bc;">_stack_end
+</span><span>
+</span><span style="color:#0184bc;">    # Clear the bss section</span><span style="color:#a0a1a7;">; it is expected to be zero
+</span><span style="color:#0184bc;">    la      t5</span><span>, </span><span style="color:#0184bc;">_bss_start
+</span><span style="color:#0184bc;">    la      t6</span><span>, </span><span style="color:#0184bc;">_bss_end
+</span><span style="color:#0184bc;">bss_clear:
+</span><span style="color:#0184bc;">    sd      zero</span><span>, </span><span style="color:#0184bc;">(t5)
+</span><span style="color:#0184bc;">    addi    t5</span><span>, </span><span style="color:#0184bc;">t5</span><span>, </span><span style="color:#c18401;">8
+</span><span style="color:#0184bc;">    bltu    t5</span><span>, </span><span style="color:#0184bc;">t6</span><span>, </span><span style="color:#0184bc;">bss_clear
+</span><span style="color:#c18401;">3</span><span style="color:#0184bc;">:
+</span><span style="color:#0184bc;">    # interrupts later
+</span><span style="color:#0184bc;">    # la      t1</span><span>, </span><span style="color:#0184bc;">kmain
+</span><span style="color:#0184bc;">    # csrw    mepc</span><span>, </span><span style="color:#0184bc;">t1
+</span><span style="color:#0184bc;">    tail kmain
+</span><span>
+</span><span style="color:#0184bc;">wait_for_interrupt:
+</span><span style="color:#0184bc;">    wfi
+</span><span style="color:#0184bc;">    j wait_for_interrupt
+</span></code></pre>
+<p>We would change <code>_enter</code> to <code>kmain</code> in <code>src/main.zig</code>.</p>
+<h3 id="global-pointer-relaxation">Global pointer relaxation</h3>
+<p>Instead of having an <code>auipc</code> instruction, we can save a global pointer symbol in our linker and use that symbol in our assembly instruction to address relative to that symbol rather than using <code>auipc</code> to help calculate some global address. This is called global pointer relaxation. However, we must first initially disable this feature first and set the global pointer here:</p>
+<pre data-lang="asm" style="background-color:#fafafa;color:#383a42;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#0184bc;">.option </span><span style="color:#a626a4;">push
+</span><span style="color:#0184bc;">.option norelax
+</span><span style="color:#0184bc;">    la      gp</span><span>, </span><span style="color:#0184bc;">_global_pointer
+</span><span style="color:#0184bc;">.option </span><span style="color:#a626a4;">pop
+</span></code></pre>
+<p>The reason we need to disable relaxation is because this will relax to <code>mv gp, gp</code> but we have not set up <code>gp</code> to do relaxation. There is no relative address if there is no address to relate to.</p>
+<h3 id="naked">Naked!</h3>
+<p>When I changed <code>_enter</code> to <code>kmain</code>, I was wondering why I was not entering <code>kmain</code> correctly when debugging. This is because I was using <code>callconv(.Naked)</code>! to ignore any calling conventions. I have a stack, but I am not setting anything up due to having my function be naked. This caused me to reference bad addresses that were not set up. Changing it to a standard calling convention fixed this bug. The reason <code>callconv(.Naked)</code> was there in the first place is because that function (before the name change) was originally our entry point where we should not be using a calling convention.</p>
+<h3 id="dtc">DTC</h3>
+<p>I was looking through QEMU's source code to find the address, <code>0x8000_0000</code>, corresponding to RAM to load our code in. I was wondering if there's a way to do it without looking through code. Luckily, there's a tool called <code>dtc</code> to read a QEMU machine's devicetree blob. We can obtain the blob by running <code>qemu-system-riscv64 -machine virt -machine dumpdtb=virt.dtb</code>. We then would be able to convert it to a human-readable format using <code>dtc -I dtb -O dts -o virt.dts virt.dtb</code>. If you read <code>virt.dts</code>, you should be able see the <code>memory@80000000</code> section where the <code>reg</code> value would tell us the size and length section:</p>
+<pre style="background-color:#fafafa;color:#383a42;"><code><span>memory@80000000 {
+</span><span>        device_type = &quot;memory&quot;;
+</span><span>        reg = &lt;0x00 0x80000000 0x00 0x8000000&gt;;
+</span><span>};
+</span></code></pre>
+<p>This tells us that our machine's memory address starts at <code>0x8000_0000</code> and is <code>0x8000_0000</code> bytes (<code>128M</code>) long. You can also read the <code>virt.dts</code> file to inspect other hardware elements such as the <code>UART</code> which is memory mapped at <code>0x1000_0000</code>.</p>
+<pre style="background-color:#fafafa;color:#383a42;"><code><span>uart@10000000 {
+</span><span>            interrupts = &lt;0x0a&gt;;
+</span><span>            interrupt-parent = &lt;0x02&gt;;
+</span><span>            clock-frequency = &lt;0x384000&gt;;
+</span><span>            reg = &lt;0x00 0x10000000 0x00 0x100&gt;;
+</span><span>            compatible = &quot;ns16550a&quot;;
+</span><span>};
+</span></code></pre>
+<h3 id="hello-world">Hello World!</h3>
+<p>We can write to our UART address and connect our serial port to stdio to see a message in our console. Add the flags to qemu: <code>-serial mon:stdio</code>. We use <code>*volatile</code> since we are expecting side effects because the address we are referencing is memory mapped.</p>
+<pre data-lang="zig" style="background-color:#fafafa;color:#383a42;" class="language-zig "><code class="language-zig" data-lang="zig"><span style="color:#a626a4;">export fn </span><span style="color:#0184bc;">kmain</span><span>() </span><span style="color:#a626a4;">noreturn </span><span>{
+</span><span>    </span><span style="color:#a626a4;">var</span><span> uart </span><span style="color:#a626a4;">= </span><span style="color:#0184bc;">@intToPtr</span><span>(</span><span style="color:#a626a4;">*volatile</span><span> u8, </span><span style="color:#c18401;">0x1000_0000</span><span>);
+</span><span>    </span><span style="color:#a626a4;">for </span><span>(</span><span style="color:#50a14f;">&quot;hello world!&quot;</span><span>) </span><span style="color:#a626a4;">|</span><span>c</span><span style="color:#a626a4;">| </span><span>{
+</span><span>        uart</span><span style="color:#a626a4;">.* =</span><span> c;
+</span><span>    }
+</span><span>    </span><span style="color:#a626a4;">while </span><span>(</span><span style="color:#c18401;">true</span><span>) {}
+</span><span>}
+</span></code></pre>
+<h3 id="sidenote-nix-cross-compiling">Sidenote: Nix Cross Compiling</h3>
+<p>I am using Nix and its dev shell when developing. I was wondering how to make a dev shell for cross-compiled programs since my build platform is on <code>x86_64-pc-linux-gnu</code> and my host platform is on <code>riscv-unknown-none-elf</code>. I need <code>gcc</code> and <code>gdb</code> that run on <code>x86</code> but read <code>riscv</code> binaries. The solution is actually pretty easy; you need to use the <code>pkgsCross</code> attribute, so my flake looks like this:</p>
+<pre data-lang="nix" style="background-color:#fafafa;color:#383a42;" class="language-nix "><code class="language-nix" data-lang="nix"><span style="color:#e45649;">devShells</span><span style="color:#a626a4;">.</span><span style="color:#e45649;">default </span><span style="background-color:#e06c75;color:#fafafa;">=</span><span> </span><span style="color:#e45649;">pkgs</span><span style="color:#a626a4;">.</span><span style="color:#e45649;">pkgsCross</span><span style="color:#a626a4;">.</span><span style="color:#e45649;">riscv64-embedded</span><span style="color:#a626a4;">.</span><span style="color:#e45649;">mkShell </span><span>{
+</span><span>  </span><span style="color:#c18401;">nativeBuildInputs </span><span style="color:#a626a4;">= with </span><span style="color:#e45649;">pkgs</span><span>; [
+</span><span>    </span><span style="color:#e45649;">zig
+</span><span>    </span><span style="color:#e45649;">zls
+</span><span>    </span><span style="color:#e45649;">qemu
+</span><span>    </span><span style="color:#e45649;">gdb
+</span><span>    </span><span style="color:#e45649;">gcc
+</span><span>  ];
+</span><span>}</span><span style="background-color:#e06c75;color:#fafafa;">;</span><span>
+</span></code></pre>
+<h3 id="summary">Summary</h3>
+<ul>
+<li>QEMU command: <code>qemu-system-riscv64 -machine virt -bios none -kernel ./zig-out/bin/nosering -nographic -serial mon:stdio</code></li>
+<li>QEMU command + debug: <code>qemu-system-riscv64 -machine virt -bios none -kernel ./zig-out/bin/nosering -nographic -serial mon:stdio -gdb tcp::1234 -S</code></li>
+<li>Source code: <a href="https://github.com/tzx/nOSering/tree/d1ceaf90e00338de95359e655d97e3143365c229">https://github.com/tzx/nOSering/tree/d1ceaf90e00338de95359e655d97e3143365c229</a></li>
+</ul>
+
+
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>

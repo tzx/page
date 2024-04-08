@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="https://timmy.moe/styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <p id="header-left">Timmy Xiao</p>
+      <div id="header-right">
+        <a href="/">home</a>
+        ·
+        <a href="/blog">blog</a>
+      </div>
+    </header>
+    <section class="section">
+      <div class="inner">
+        
+<div class="page-heading">
+  <h1 class="title">
+    MIT SECURE on iwd
+  </h1>
+  <div class="subtitle"><strong>2022-09-15</strong></div>
+</div>
+<p>I use <code>iwd</code> on certain machines if I am using <code>systemd-networkd</code>. However,
+there are some troubles when I am trying to connect to MIT SECURE. Before
+<code>iwd</code>, I could connect to MIT SECURE by just providing my kerberos and
+password. However, using <code>iwd</code> I had to learn more about WPA Enterprise
+connections.</p>
+<h3 id="eap-peap">EAP-PEAP</h3>
+<p>MIT SECURE uses EAP-PEAP which means you get a password protected access point
+like EAP-PWD, but you also use a public key server certificate to establish a
+secure connection when authenticating. The servers that are authenticating
+users are called RADIUS (Remote Authentication Dial-In User Service) servers.
+When using EAP-PEAP, you can provide a CA certificate. My previous network
+managers did not require them, so I just left them blank. When using <code>iwd</code>, I
+have to provide a CA Certificate (I think?). The CA certificate is useful
+because before the authentication finishes, we don't know anything about the
+network. The access point is just proxying requests to the RADIUS server and
+the CA certificate helps validate the identity of the RADIUS server.</p>
+<h3 id="so-what-s-the-config">So what's the config?</h3>
+<p>MIT provides the RADIUS servers and how you can verify them
+<a href="https://kb.mit.edu/confluence/display/istcontrib/MIT+SECURE+Wireless+Certificate+Fingerprints">here</a>.
+I had to look up the CA Certificate <a href="https://www.tbs-certificates.co.uk/FAQ/en/Comodo_AAA_Certificate_Services.html">AAA Certificate
+Services</a>
+using the powers of the internet. The wiki provided fingerprints to verify if I
+am using the correct certificate. My iwd configuration file looks like this:</p>
+<pre style="background-color:#fafafa;color:#383a42;"><code><span># in &quot;/var/lib/iwd/MIT SECURE.8021x&quot;
+</span><span>
+</span><span>[Security]
+</span><span>EAP-Method=PEAP
+</span><span>EAP-PEAP-CACert=embed:cert
+</span><span>EAP-PEAP-ServerDomainMask=oc11-radius-wireless-1.mit.edu;w92-radius-wireless-1.mit.edu
+</span><span>EAP-PEAP-Phase2-Method=MSCHAPV2
+</span><span>EAP-PEAP-Phase2-Identity=REDACTED
+</span><span>EAP-PEAP-Phase2-Password=REDACTED
+</span><span>
+</span><span>[@pem@cert]
+</span><span>-----BEGIN CERTIFICATE-----
+</span><span>MIIEMjCCAxqgAwIBAgIBATANBgkqhkiG9w0BAQUFADB7MQswCQYDVQQGEwJHQjEb
+</span><span>MBkGA1UECAwSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHDAdTYWxmb3JkMRow
+</span><span>GAYDVQQKDBFDb21vZG8gQ0EgTGltaXRlZDEhMB8GA1UEAwwYQUFBIENlcnRpZmlj
+</span><span>YXRlIFNlcnZpY2VzMB4XDTA0MDEwMTAwMDAwMFoXDTI4MTIzMTIzNTk1OVowezEL
+</span><span>MAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UE
+</span><span>BwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0ZWQxITAfBgNVBAMM
+</span><span>GEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczCCASIwDQYJKoZIhvcNAQEBBQADggEP
+</span><span>ADCCAQoCggEBAL5AnfRu4ep2hxxNRUSOvkbIgwadwSr+GB+O5AL686tdUIoWMQua
+</span><span>BtDFcCLNSS1UY8y2bmhGC1Pqy0wkwLxyTurxFa70VJoSCsN6sjNg4tqJVfMiWPPe
+</span><span>3M/vg4aijJRPn2jymJBGhCfHdr/jzDUsi14HZGWCwEiwqJH5YZ92IFCokcdmtet4
+</span><span>YgNW8IoaE+oxox6gmf049vYnMlhvB/VruPsUK6+3qszWY19zjNoFmag4qMsXeDZR
+</span><span>rOme9Hg6jc8P2ULimAyrL58OAd7vn5lJ8S3frHRNG5i1R8XlKdH5kBjHYpy+g8cm
+</span><span>ez6KJcfA3Z3mNWgQIJ2P2N7Sw4ScDV7oL8kCAwEAAaOBwDCBvTAdBgNVHQ4EFgQU
+</span><span>oBEKIz6W8Qfs4q8p74Klf9AwpLQwDgYDVR0PAQH/BAQDAgEGMA8GA1UdEwEB/wQF
+</span><span>MAMBAf8wewYDVR0fBHQwcjA4oDagNIYyaHR0cDovL2NybC5jb21vZG9jYS5jb20v
+</span><span>QUFBQ2VydGlmaWNhdGVTZXJ2aWNlcy5jcmwwNqA0oDKGMGh0dHA6Ly9jcmwuY29t
+</span><span>b2RvLm5ldC9BQUFDZXJ0aWZpY2F0ZVNlcnZpY2VzLmNybDANBgkqhkiG9w0BAQUF
+</span><span>AAOCAQEACFb8AvCb6P+k+tZ7xkSAzk/ExfYAWMymtrwUSWgEdujm7l3sAg9g1o1Q
+</span><span>GE8mTgHj5rCl7r+8dFRBv/38ErjHT1r0iWAFf2C3BUrz9vHCv8S5dIa2LX1rzNLz
+</span><span>Rt0vxuBqw8M0Ayx9lt1awg6nCpnBBYurDC/zXDrPbDdVCYfeU0BsWO/8tqtlbgT2
+</span><span>G9w84FoVxp7Z8VlIMCFlA2zs6SFz7JsDoeA3raAVGI/6ugLOpyypEBMs1OUIJqsi
+</span><span>l2D4kF501KKaU73yqWjgom7C12yxow+ev+to51byrvLjKzg6CYG1a4XXvi3tPxq3
+</span><span>smPi9WIsgtRqAEFQ8TmDn5XpNpaYbg==
+</span><span>-----END CERTIFICATE-----
+</span></code></pre>
+
+
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>

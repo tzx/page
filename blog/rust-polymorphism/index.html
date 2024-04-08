@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="https://timmy.moe/styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <p id="header-left">Timmy Xiao</p>
+      <div id="header-right">
+        <a href="/">home</a>
+        ·
+        <a href="/blog">blog</a>
+      </div>
+    </header>
+    <section class="section">
+      <div class="inner">
+        
+<div class="page-heading">
+  <h1 class="title">
+    Rust Polymorphism
+  </h1>
+  <div class="subtitle"><strong>2021-06-28</strong></div>
+</div>
+<p>This is my first post. This was from handwritten notes that I took 2 years ago.
+I was inspired to actually put stuff online from someone's similar post about
+static and dynamic dispatch in Rust with detailed binary inspection. I wish I
+can find it again so I can give credit :(. </p>
+<h3 id="what-is-polymorphism">What is Polymorphism?</h3>
+<p>Polymorphism allows us to provide a group of functions for multiple concrete
+types, allowing shared behavior. In most languages, we can use interfaces to
+implement this behavior. In Rust, we can use traits. Most examples that I see
+about polymorphism are with animals, so let's try it here.</p>
+<pre data-lang="rust" style="background-color:#fafafa;color:#383a42;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#a626a4;">trait </span><span>Animal {
+</span><span>    </span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">make_noise</span><span>();
+</span><span>}
+</span><span>
+</span><span style="color:#a626a4;">struct </span><span>Cat;
+</span><span style="color:#a626a4;">impl </span><span>Animal </span><span style="color:#a626a4;">for </span><span>Cat {
+</span><span>    </span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">make_noise</span><span>(</span><span style="color:#a626a4;">&amp;</span><span style="color:#e45649;">self</span><span>) {
+</span><span>        println!(</span><span style="color:#50a14f;">&quot;meow&quot;</span><span>)
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span style="color:#a626a4;">struct </span><span>Dog;
+</span><span style="color:#a626a4;">impl </span><span>Animal </span><span style="color:#a626a4;">for </span><span>Dog {
+</span><span>    </span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">make_noise</span><span>(</span><span style="color:#a626a4;">&amp;</span><span style="color:#e45649;">self</span><span>) {
+</span><span>        println!(</span><span style="color:#50a14f;">&quot;woof&quot;</span><span>)
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<h3 id="using-trait-bounds">Using Trait Bounds</h3>
+<p>In Rust, we can use trait bounds to make a generic function be any type that
+has the behavior we specified. This allows us to have a function that takes any
+struct that implements the Animal trait and call the shared behavior of the
+trait Animal: <code>make_noise</code>.</p>
+<pre data-lang="rust" style="background-color:#fafafa;color:#383a42;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">pls_make_noise</span><span>(</span><span style="color:#e45649;">a</span><span>: impl Animal) {
+</span><span>  a.</span><span style="color:#0184bc;">make_noise</span><span>();
+</span><span>}
+</span><span>
+</span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">main</span><span>() {
+</span><span>  </span><span style="color:#0184bc;">pls_make_noise</span><span>(Cat{});
+</span><span>  </span><span style="color:#0184bc;">pls_make_noise</span><span>(Dog{});
+</span><span>}
+</span></code></pre>
+<h3 id="using-trait-objects">Using Trait Objects</h3>
+<p>However, this would not work if we want to take in a vector of different types
+that implement the same trait. A <code>Vec&lt;impl Animal&gt;</code> only allows only one type
+that implements the <code>Animal</code> trait, so we can't have both <code>Cat</code> and <code>Dog</code> in that
+vector. This is because trait bounds are checked during compile time, so the
+types must match. To resolve this, we need to have a vector of trait objects. A
+trait object is a pointer that points to the type that implements our trait and
+a table to lookup the trait methods during runtime, using dynamic dispatch. A
+way to create one is to make a reference <code>&amp;</code> with the <code>dyn</code> keyword after
+(technically optional but new versions of the compiler will warn you). Let's
+now make a vector of trait objects and a function that takes this vector and
+calls the shared trait method for each of the objects.</p>
+<pre data-lang="rust" style="background-color:#fafafa;color:#383a42;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">pls_all_make_noise</span><span>(</span><span style="color:#e45649;">animals</span><span>: Vec&lt;</span><span style="color:#a626a4;">&amp;</span><span>dyn Animal&gt;) {
+</span><span>  </span><span style="color:#a626a4;">for</span><span> a </span><span style="color:#a626a4;">in</span><span> animals {
+</span><span>    a.</span><span style="color:#0184bc;">make_noise</span><span>();
+</span><span>  }
+</span><span>}
+</span><span>
+</span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">main</span><span>() {
+</span><span>  </span><span style="color:#a626a4;">let</span><span> animals: Vec&lt;</span><span style="color:#a626a4;">&amp;</span><span>dyn Animal&gt; </span><span style="color:#a626a4;">= </span><span>vec![</span><span style="color:#a626a4;">&amp;</span><span>Dog{}, </span><span style="color:#a626a4;">&amp;</span><span>Cat{}];
+</span><span>  </span><span style="color:#0184bc;">pls_all_make_noise</span><span>(animals);
+</span><span>}
+</span></code></pre>
+<p>If you wanted the trait objects to be owned rather than being references, you
+can use <code>Box</code>.</p>
+<h3 id="but-wait-consider-enums-first">But Wait! Consider Enums First</h3>
+<p>In Rust, enums are allowed to have data along with them, meaning we can create
+a <code>Animal</code> enum to hold our <code>Dog</code> and <code>Cat</code> structs (although we didn't hold
+data for our structs in our Traits example). We also can hold a <code>Vec&lt;Animal&gt;</code>
+without needing to use dynamic dispatch. I believe how it works under the hood
+is something that is similar to tagged unions which only needs compile time
+checks. To achieve polymorphism, we can implement a function on the enum with a
+<code>match</code> expression to have a single place for our shared behavior.</p>
+<pre data-lang="rust" style="background-color:#fafafa;color:#383a42;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#a626a4;">enum </span><span>Animal {
+</span><span>  Cat { name: </span><span style="color:#a626a4;">&amp;&#39;static str </span><span>},
+</span><span>  Dog { name: </span><span style="color:#a626a4;">&amp;&#39;static str </span><span>},
+</span><span>}
+</span><span>
+</span><span style="color:#a626a4;">impl </span><span>Animal {
+</span><span>  </span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">make_noise</span><span>(</span><span style="color:#a626a4;">&amp;</span><span style="color:#e45649;">self</span><span>) {
+</span><span>    </span><span style="color:#a626a4;">match </span><span style="color:#e45649;">self </span><span>{
+</span><span>      Animal::Cat { name } </span><span style="color:#a626a4;">=&gt;
+</span><span>        println!(</span><span style="color:#50a14f;">&quot;</span><span style="color:#c18401;">{}</span><span style="color:#50a14f;"> says meow&quot;</span><span>, name),
+</span><span>      Animal::Dog { name } </span><span style="color:#a626a4;">=&gt;
+</span><span>        println!(</span><span style="color:#50a14f;">&quot;</span><span style="color:#c18401;">{}</span><span style="color:#50a14f;"> says woof&quot;</span><span>, name),
+</span><span>    }
+</span><span>  }
+</span><span>}
+</span><span>
+</span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">pls_all_make_noise</span><span>(</span><span style="color:#e45649;">animals</span><span>: Vec&lt;Animal&gt;) {
+</span><span>  </span><span style="color:#a626a4;">for</span><span> a </span><span style="color:#a626a4;">in</span><span> animals {
+</span><span>    a.</span><span style="color:#0184bc;">make_noise</span><span>();
+</span><span>  }
+</span><span>}
+</span><span>
+</span><span style="color:#a626a4;">fn </span><span style="color:#0184bc;">main</span><span>() {
+</span><span>  </span><span style="color:#a0a1a7;">// I am not good with names
+</span><span>  </span><span style="color:#a626a4;">let</span><span> dog </span><span style="color:#a626a4;">= </span><span>Animal::Dog { name: </span><span style="color:#50a14f;">&quot;Dog&quot; </span><span>};
+</span><span>  </span><span style="color:#a626a4;">let</span><span> cat </span><span style="color:#a626a4;">= </span><span>Animal::Cat { name: </span><span style="color:#50a14f;">&quot;Cat&quot; </span><span>};
+</span><span>  </span><span style="color:#a626a4;">let</span><span> animals </span><span style="color:#a626a4;">= </span><span>vec![dog, cat];
+</span><span>  </span><span style="color:#0184bc;">pls_all_make_noise</span><span>(animals);
+</span><span>}
+</span></code></pre>
+<p>Therefore, if you know the number of variants that have shared behavior, you
+should probably use an enum. Otherwise, you would have to use trait objects;
+the most common case of this happening is exposing a library where people can
+add their own types to have your shared behavior.</p>
+
+
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>

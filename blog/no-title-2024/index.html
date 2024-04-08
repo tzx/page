@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="https://timmy.moe/styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <p id="header-left">Timmy Xiao</p>
+      <div id="header-right">
+        <a href="/">home</a>
+        ·
+        <a href="/blog">blog</a>
+      </div>
+    </header>
+    <section class="section">
+      <div class="inner">
+        
+<div class="page-heading">
+  <h1 class="title">
+    Untitled 2024
+  </h1>
+  <div class="subtitle"><strong>2024-01-02</strong></div>
+</div>
+<p>Happy new year! A semi not important brain dump mainly from December 2023 that I wanted to write down.</p>
+<h3 id="defaultdict-int-vs-counter">defaultdict(int) vs Counter</h3>
+<p>A difference that I discovered between <code>defaultdict(int)</code> and <code>Counter</code> that
+caused a problem during my attempt on an <a href="https://adventofcode.com/">Advent of
+Code</a> solution was that <code>Counter</code> doesn't add a key
+when you query a missing key. However, <code>defaultdict(int)</code> does!</p>
+<h3 id="generating-a-new-shared-pointer-of-this-in-c">Generating a new shared pointer of this in C++</h3>
+<p>I made a <a href="https://github.com/tzx/rt">ray tracer</a> recently. One of things that I
+wanted to do is to create a new shared pointer from a shared pointer of an object.
+You can do that with
+<a href="https://en.cppreference.com/w/cpp/memory/enable_shared_from_this">std::enable_shared_from_this</a>.</p>
+<p>Tangent:
+<a href="https://users.rust-lang.org/t/distinguishing-affine-and-vector-quantities-in-the-type-system/73139/5">here</a>
+is a cool discussion I found about affine and vector types in Rust!</p>
+<h3 id="moving-multiple-lines-of-text-in-neovim">Moving multiple lines of text in Neovim</h3>
+<p>A feature that I saw in Eclipse (probably other editors support this) that I
+wanted to replicate in Neovim is to <em>move</em> up/down multiple lines of text. It
+is different from yanking and putting as <em>moving</em> is something you can see
+in-place.</p>
+<p>Here it is:</p>
+<pre data-lang="lua" style="background-color:#fafafa;color:#383a42;" class="language-lua "><code class="language-lua" data-lang="lua"><span style="color:#e45649;">vim</span><span>.keymap.</span><span style="color:#e45649;">set</span><span>(</span><span style="color:#50a14f;">&#39;v&#39;</span><span>, </span><span style="color:#50a14f;">&#39;&lt;A-j&gt;&#39;</span><span>, </span><span style="color:#50a14f;">&quot;:m &#39;&gt;+1&lt;CR&gt;gv=gv&quot;</span><span>)
+</span><span style="color:#e45649;">vim</span><span>.keymap.</span><span style="color:#e45649;">set</span><span>(</span><span style="color:#50a14f;">&#39;v&#39;</span><span>, </span><span style="color:#50a14f;">&#39;&lt;A-k&gt;&#39;</span><span>, </span><span style="color:#50a14f;">&quot;:m &#39;&lt;-2&lt;CR&gt;gv=gv&quot;</span><span>)
+</span></code></pre>
+<p>This binds moving selected text in visual mode to <code>Alt-j</code> and <code>Alt-k</code>.</p>
+<h3 id="vim-o-vs-vim-opt">vim.o vs vim.opt</h3>
+<p>In Neovim, <code>vim.o.*</code> and <code>vim.opt.*</code> are different! I thought they were the same.
+<code>vim.o</code> is a string and <code>vim.opt</code> is a table which allows more idiomatic lua code!
+I should maybe move from <code>vim.o</code> to <code>vim.opt</code> when I am bored.</p>
+<p>I discovered this difference when I wanted to add something to
+<code>listchars</code>. <code>vim.o.listchars += eol:↲</code> didn't work! From my
+discoveries, in vimscript, <code>set listchars+=eol:↲</code> seems to add an comma which
+doesn't happen in <code>lua</code>. Therefore I opted (aha) to use
+<code>vim.opt.listchars:append({ eol = ↲ })</code> instead. </p>
+
+
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>

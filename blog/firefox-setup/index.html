@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timmy Xiao</title>
+  <link rel="stylesheet" href="https://timmy.moe/styles.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <p id="header-left">Timmy Xiao</p>
+      <div id="header-right">
+        <a href="/">home</a>
+        ·
+        <a href="/blog">blog</a>
+      </div>
+    </header>
+    <section class="section">
+      <div class="inner">
+        
+<div class="page-heading">
+  <h1 class="title">
+    Firefox Setup
+  </h1>
+  <div class="subtitle"><strong>2024-04-07</strong></div>
+</div>
+<p>I borked my old laptop the other day ):. I currently have dotfiles that reproduced my setup, but I have nothing for Firefox (And I don't want to use Nix to manage this). Instead I am going to document it here. Honestly I should also document other stuff I ran into (missing polkit, AMD power profiles, backlight, btrfs, xdg-desktop-portal)</p>
+<h3 id="about-config">about:config</h3>
+<pre style="background-color:#fafafa;color:#383a42;"><code><span>KEY                                                          VALUE                      COMMENT
+</span><span>browser.cache.disk.parent_directory                          /run/user/1000/firefox     disk cache on RAM, 1000 is my UID
+</span><span>extensions.pocket.enabled                                    false
+</span><span>media.ffmpeg.vaapi.enabled                                   true                       Hardware Acceleration
+</span><span>privacy.trackingprotection.enabled                           true                       Enhanced Tracking Protection
+</span><span>privacy.firstparty.isolate                                   true                       Don&#39;t track across multiple sites
+</span><span>toolkit.legacyUserProfileCustomizations.stylesheets          true                       I want css, mainly for Sidebery
+</span><span>
+</span></code></pre>
+<h3 id="about-preferences">about:preferences</h3>
+<h4 id="tabs">Tabs</h4>
+<ul>
+<li><input disabled="" type="checkbox" checked=""/>
+Ctrl+Tab cycles through tabs in recently used order</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Open links in tabs instead of new windows</li>
+<li>[] When you open a link, image or media in a new tab, switch to it immediately</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Confirm before closing multiple tabs</li>
+<li><input disabled="" type="checkbox" checked=""/>
+Confirm before quitting with Ctrl+Q</li>
+</ul>
+<h3 id="extensions">Extensions</h3>
+<ul>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/sidebery/">Sidebery</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/">uBlock Origin</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/istilldontcareaboutcookies/">I still don't care about cookies</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/clearurls/">ClearURLS</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/bitwarden-password-manager/">Bitwarden</a></li>
+</ul>
+<h3 id="css">CSS</h3>
+<p>I only use CSS for Sidebery currently. It just removes the tab bar and makes
+sidebery autohide. Steps to create it are
+<a href="https://www.userchrome.org/how-create-userchrome-css.html">here</a>.</p>
+<pre data-lang="css" style="background-color:#fafafa;color:#383a42;" class="language-css "><code class="language-css" data-lang="css"><span style="color:#c18401;">#TabsToolbar
+</span><span>{
+</span><span>    visibility: collapse;
+</span><span>}
+</span><span style="color:#c18401;">#sidebar-box #sidebar-header </span><span>{
+</span><span>  display: none </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#a0a1a7;">/* show sidebar when hover */
+</span><span style="color:#c18401;">#sidebar-box </span><span>{
+</span><span>    --uc-sidebar-width: </span><span style="color:#c18401;">48</span><span style="color:#a626a4;">px</span><span>;
+</span><span>    --uc-sidebar-hover-width: </span><span style="color:#c18401;">300</span><span style="color:#a626a4;">px</span><span>;
+</span><span>    --uc-autohide-sidebar-delay: </span><span style="color:#c18401;">1</span><span style="color:#a626a4;">s</span><span>;
+</span><span>    width: </span><span style="color:#0184bc;">var</span><span>(--uc-sidebar-width) </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>    min-width: </span><span style="color:#0184bc;">var</span><span>(--uc-sidebar-width) </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>    max-width: </span><span style="color:#0184bc;">var</span><span>(--uc-sidebar-width) </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>    position: relative;
+</span><span>    z-index: </span><span style="color:#c18401;">1</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#c18401;">#sidebar </span><span>{
+</span><span>    </span><span style="color:#a0a1a7;">/* start 1s after hover but immediately after removing hover */
+</span><span>    transition: min-width </span><span style="color:#c18401;">0.2</span><span style="color:#a626a4;">s </span><span>ease-in-out </span><span style="color:#c18401;">0</span><span style="color:#a626a4;">s !important</span><span>;
+</span><span>    min-width: </span><span style="color:#0184bc;">var</span><span>(--uc-sidebar-width) </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#c18401;">#sidebar:</span><span style="color:#a626a4;">hover </span><span>{
+</span><span>    transition: min-width </span><span style="color:#c18401;">0.02</span><span style="color:#a626a4;">s </span><span>ease-in-out --</span><span style="color:#0184bc;">var</span><span>(--uc-autohide-sidebar-delay) </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#c18401;">#sidebar-box:</span><span style="color:#a626a4;">hover &gt; </span><span style="color:#c18401;">#sidebar </span><span>{
+</span><span>    min-width: </span><span style="color:#0184bc;">var</span><span>(--uc-sidebar-hover-width) </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>    transition-delay: </span><span style="color:#c18401;">0.02</span><span style="color:#a626a4;">s !important</span><span>;
+</span><span>    box-shadow: </span><span style="color:#c18401;">0</span><span style="color:#a626a4;">px </span><span style="color:#c18401;">6</span><span style="color:#a626a4;">px </span><span style="color:#c18401;">12</span><span style="color:#a626a4;">px </span><span style="color:#c18401;">0 </span><span style="color:#0184bc;">rgba</span><span>(</span><span style="color:#c18401;">0</span><span>, </span><span style="color:#c18401;">0</span><span>, </span><span style="color:#c18401;">0</span><span>, </span><span style="color:#c18401;">0.5</span><span>);
+</span><span>}
+</span><span>
+</span><span style="color:#c18401;">#sidebar </span><span>{
+</span><span>    border-inline: </span><span style="color:#c18401;">1</span><span style="color:#a626a4;">px </span><span>solid </span><span style="color:#0184bc;">var</span><span>(--toolbar-field-background-color);
+</span><span>    border-inline-width: </span><span style="color:#c18401;">0</span><span style="color:#a626a4;">px </span><span style="color:#c18401;">1</span><span style="color:#a626a4;">px</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#c18401;">#sidebar-box[positionend] </span><span style="color:#a626a4;">&gt; </span><span style="color:#e45649;">* </span><span>{
+</span><span>    border-inline-width: </span><span style="color:#c18401;">1</span><span style="color:#a626a4;">px </span><span style="color:#c18401;">0</span><span style="color:#a626a4;">px</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#c18401;">#main-window[sizemode</span><span style="color:#a626a4;">=</span><span style="color:#50a14f;">&quot;fullscreen&quot;</span><span style="color:#c18401;">] #sidebar-box </span><span>{
+</span><span>    --uc-sidebar-width: </span><span style="color:#c18401;">1</span><span style="color:#a626a4;">px</span><span>;
+</span><span>    transition: </span><span style="color:#c18401;">0.8</span><span style="color:#a626a4;">s </span><span>margin-left ease-out </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#c18401;">#sidebar-splitter </span><span>{
+</span><span>    display: none </span><span style="color:#a626a4;">!important</span><span>;
+</span><span>}
+</span></code></pre>
+
+
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>
